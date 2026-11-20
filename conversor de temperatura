@@ -1,0 +1,348 @@
+
+import React, { useState } from 'react';
+
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert
+} from 'react-native';
+
+export default function App() {
+
+  const [temperatura, setTemperatura] = useState('');
+  const [direcao, setDirecao] = useState('C-F');
+  const [resultado, setResultado] = useState(null);
+
+  // Realizar conversão
+  function converter() {
+
+    if (temperatura.trim() === '') {
+      Alert.alert(
+        'Atenção',
+        'Digite uma temperatura para converter.'
+      );
+      return;
+    }
+
+    const valor = Number(
+      temperatura.replace(',', '.')
+    );
+
+    if (!Number.isFinite(valor)) {
+      Alert.alert(
+        'Valor inválido',
+        'Digite uma temperatura numérica válida.'
+      );
+      return;
+    }
+
+    let convertido;
+
+    if (direcao === 'C-F') {
+      convertido = (valor * 9 / 5) + 32;
+
+      setResultado({
+        valor: convertido.toFixed(2),
+        unidade: '°F'
+      });
+
+    } else {
+      convertido = (valor - 32) * 5 / 9;
+
+      setResultado({
+        valor: convertido.toFixed(2),
+        unidade: '°C'
+      });
+    }
+  }
+
+  // Limpar campos
+  function limpar() {
+    setTemperatura('');
+    setResultado(null);
+  }
+
+  return (
+    <View style={styles.container}>
+
+      <Text style={styles.icone}>🌡️</Text>
+
+      <Text style={styles.titulo}>
+        Conversor de Temperatura
+      </Text>
+
+      <Text style={styles.subtitulo}>
+        Converta temperaturas entre Celsius e Fahrenheit
+      </Text>
+
+      {/* Seleção da conversão */}
+      <View style={styles.card}>
+
+        <Text style={styles.label}>
+          Escolha o tipo de conversão:
+        </Text>
+
+        <View style={styles.opcoes}>
+
+          <TouchableOpacity
+            style={[
+              styles.botaoOpcao,
+              direcao === 'C-F' && styles.opcaoSelecionada
+            ]}
+            onPress={() => {
+              setDirecao('C-F');
+              setResultado(null);
+            }}
+          >
+            <Text style={[
+              styles.textoOpcao,
+              direcao === 'C-F' && styles.textoSelecionado
+            ]}>
+              °C → °F
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.botaoOpcao,
+              direcao === 'F-C' && styles.opcaoSelecionada
+            ]}
+            onPress={() => {
+              setDirecao('F-C');
+              setResultado(null);
+            }}
+          >
+            <Text style={[
+              styles.textoOpcao,
+              direcao === 'F-C' && styles.textoSelecionado
+            ]}>
+              °F → °C
+            </Text>
+          </TouchableOpacity>
+
+        </View>
+
+        {/* Campo de temperatura */}
+        <Text style={styles.label}>
+          {direcao === 'C-F'
+            ? 'Temperatura em Celsius (°C):'
+            : 'Temperatura em Fahrenheit (°F):'}
+        </Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder={
+            direcao === 'C-F'
+              ? 'Exemplo: 30'
+              : 'Exemplo: 86'
+          }
+          keyboardType="decimal-pad"
+          value={temperatura}
+          onChangeText={(texto) => {
+            setTemperatura(texto);
+            setResultado(null);
+          }}
+        />
+
+        {/* Botão converter */}
+        <TouchableOpacity
+          style={styles.botaoConverter}
+          onPress={converter}
+        >
+          <Text style={styles.textoBotao}>
+            Converter temperatura
+          </Text>
+        </TouchableOpacity>
+
+      </View>
+
+      {/* Resultado */}
+      {resultado !== null && (
+
+        <View style={styles.resultado}>
+
+          <Text style={styles.resultadoTitulo}>
+            Resultado da conversão
+          </Text>
+
+          <Text style={styles.valorResultado}>
+            {resultado.valor.replace('.', ',')} {resultado.unidade}
+          </Text>
+
+          <Text style={styles.descricao}>
+            {direcao === 'C-F'
+              ? 'Celsius para Fahrenheit'
+              : 'Fahrenheit para Celsius'}
+          </Text>
+
+        </View>
+
+      )}
+
+      {/* Botão limpar */}
+      <TouchableOpacity
+        style={styles.botaoLimpar}
+        onPress={limpar}
+      >
+        <Text style={styles.textoLimpar}>
+          Limpar
+        </Text>
+      </TouchableOpacity>
+
+      <Text style={styles.rodape}>
+        Conversão entre escalas de temperatura
+      </Text>
+
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+
+  container: {
+    flex: 1,
+    backgroundColor: '#FFF5EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 22
+  },
+
+  icone: {
+    fontSize: 60,
+    marginBottom: 8
+  },
+
+  titulo: {
+    fontSize: 25,
+    fontWeight: 'bold',
+    color: '#C45B21',
+    textAlign: 'center'
+  },
+
+  subtitulo: {
+    fontSize: 14,
+    color: '#8C7667',
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 28
+  },
+
+  card: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderRadius: 16,
+    elevation: 3
+  },
+
+  label: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#574536',
+    marginBottom: 12
+  },
+
+  opcoes: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 25
+  },
+
+  botaoOpcao: {
+    flex: 1,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#E5C8B4',
+    borderRadius: 10,
+    alignItems: 'center',
+    backgroundColor: '#FFF9F4'
+  },
+
+  opcaoSelecionada: {
+    backgroundColor: '#D96B2B',
+    borderColor: '#D96B2B'
+  },
+
+  textoOpcao: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#8C5737'
+  },
+
+  textoSelecionado: {
+    color: '#FFFFFF'
+  },
+
+  input: {
+    backgroundColor: '#FFF9F4',
+    borderWidth: 1,
+    borderColor: '#E5C8B4',
+    borderRadius: 10,
+    padding: 16,
+    fontSize: 18,
+    marginBottom: 20
+  },
+
+  botaoConverter: {
+    backgroundColor: '#D96B2B',
+    padding: 16,
+    borderRadius: 10,
+    alignItems: 'center'
+  },
+
+  textoBotao: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold'
+  },
+
+  resultado: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    padding: 25,
+    borderRadius: 15,
+    alignItems: 'center',
+    marginTop: 22,
+    elevation: 3
+  },
+
+  resultadoTitulo: {
+    color: '#8C7667',
+    fontSize: 14
+  },
+
+  valorResultado: {
+    fontSize: 34,
+    fontWeight: 'bold',
+    color: '#D96B2B',
+    marginTop: 12
+  },
+
+  descricao: {
+    fontSize: 13,
+    color: '#8C7667',
+    marginTop: 8
+  },
+
+  botaoLimpar: {
+    padding: 14,
+    marginTop: 8
+  },
+
+  textoLimpar: {
+    color: '#C45B21',
+    fontSize: 15,
+    fontWeight: 'bold'
+  },
+
+  rodape: {
+    color: '#A99A8E',
+    fontSize: 12,
+    marginTop: 15,
+    textAlign: 'center'
+  }
+
+});
