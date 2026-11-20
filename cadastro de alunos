@@ -1,0 +1,411 @@
+
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Alert
+} from 'react-native';
+
+export default function App() {
+  const [nome, setNome] = useState('');
+  const [matricula, setMatricula] = useState('');
+  const [email, setEmail] = useState('');
+  const [curso, setCurso] = useState('');
+
+  const [estudantes, setEstudantes] = useState([]);
+
+  // Cadastra um novo estudante
+  function cadastrarEstudante() {
+    if (
+      nome.trim() === '' ||
+      matricula.trim() === '' ||
+      email.trim() === '' ||
+      curso.trim() === ''
+    ) {
+      Alert.alert('Atenção', 'Preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    // Validação simples de e-mail
+    if (!email.includes('@') || !email.includes('.')) {
+      Alert.alert('E-mail inválido', 'Digite um endereço de e-mail válido.');
+      return;
+    }
+
+    // Verifica se a matrícula já está cadastrada
+    const matriculaExiste = estudantes.some(
+      (estudante) => estudante.matricula === matricula.trim()
+    );
+
+    if (matriculaExiste) {
+      Alert.alert(
+        'Matrícula duplicada',
+        'Já existe um estudante cadastrado com essa matrícula.'
+      );
+      return;
+    }
+
+    // Cria o objeto do estudante
+    const novoEstudante = {
+      id: Date.now().toString(),
+      nome: nome.trim(),
+      matricula: matricula.trim(),
+      email: email.trim(),
+      curso: curso.trim()
+    };
+
+    // Adiciona o objeto ao array
+    setEstudantes((anterior) => [...anterior, novoEstudante]);
+
+    Alert.alert('Sucesso!', 'Estudante cadastrado com sucesso.');
+
+    // Limpa os campos
+    setNome('');
+    setMatricula('');
+    setEmail('');
+    setCurso('');
+  }
+
+  // Remove um estudante pelo ID
+  function removerEstudante(id) {
+    Alert.alert(
+      'Remover estudante',
+      'Deseja realmente remover este cadastro?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel'
+        },
+        {
+          text: 'Remover',
+          style: 'destructive',
+          onPress: () => {
+            setEstudantes((anterior) =>
+              anterior.filter((estudante) => estudante.id !== id)
+            );
+          }
+        }
+      ]
+    );
+  }
+
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.conteudo}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.header}>
+        <Text style={styles.titulo}>🎓 Cadastro de Estudantes</Text>
+        <Text style={styles.subtitulo}>
+          Sistema de gerenciamento acadêmico
+        </Text>
+      </View>
+
+      <View style={styles.formulario}>
+        <Text style={styles.tituloFormulario}>
+          Novo estudante
+        </Text>
+
+        <Text style={styles.label}>Nome completo</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Digite o nome do estudante"
+          value={nome}
+          onChangeText={setNome}
+        />
+
+        <Text style={styles.label}>Matrícula</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Digite a matrícula"
+          value={matricula}
+          onChangeText={setMatricula}
+          keyboardType="numeric"
+        />
+
+        <Text style={styles.label}>E-mail</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="exemplo@email.com"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+
+        <Text style={styles.label}>Curso</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Digite o curso"
+          value={curso}
+          onChangeText={setCurso}
+        />
+
+        <TouchableOpacity
+          style={styles.botaoCadastrar}
+          onPress={cadastrarEstudante}
+        >
+          <Text style={styles.textoBotao}>
+            + CADASTRAR ESTUDANTE
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.areaLista}>
+        <View style={styles.cabecalhoLista}>
+          <Text style={styles.tituloLista}>
+            Estudantes cadastrados
+          </Text>
+
+          <View style={styles.contador}>
+            <Text style={styles.textoContador}>
+              {estudantes.length}
+            </Text>
+          </View>
+        </View>
+
+        {estudantes.length === 0 ? (
+          <View style={styles.vazio}>
+            <Text style={styles.iconeVazio}>📚</Text>
+            <Text style={styles.textoVazio}>
+              Nenhum estudante cadastrado.
+            </Text>
+            <Text style={styles.dicaVazio}>
+              Preencha os campos acima para adicionar o primeiro estudante.
+            </Text>
+          </View>
+        ) : (
+          estudantes.map((estudante) => (
+            <View key={estudante.id} style={styles.card}>
+              <View style={styles.cardCabecalho}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarTexto}>
+                    {estudante.nome.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+
+                <View style={styles.dadosPrincipais}>
+                  <Text style={styles.nomeEstudante}>
+                    {estudante.nome}
+                  </Text>
+                  <Text style={styles.matriculaEstudante}>
+                    Matrícula: {estudante.matricula}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.divisor} />
+
+              <Text style={styles.dado}>
+                ✉️ {estudante.email}
+              </Text>
+
+              <Text style={styles.dado}>
+                🎓 {estudante.curso}
+              </Text>
+
+              <TouchableOpacity
+                style={styles.botaoRemover}
+                onPress={() => removerEstudante(estudante.id)}
+              >
+                <Text style={styles.textoRemover}>
+                  Remover cadastro
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ))
+        )}
+      </View>
+
+      <Text style={styles.rodape}>
+        Sistema acadêmico – Projeto React Native
+      </Text>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F1F5F9'
+  },
+  conteudo: {
+    paddingBottom: 30
+  },
+  header: {
+    backgroundColor: '#0F766E',
+    padding: 30,
+    paddingTop: 55,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+    alignItems: 'center'
+  },
+  titulo: {
+    color: '#FFFFFF',
+    fontSize: 23,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
+  subtitulo: {
+    color: '#CCFBF1',
+    fontSize: 14,
+    marginTop: 10
+  },
+  formulario: {
+    backgroundColor: '#FFFFFF',
+    margin: 20,
+    padding: 20,
+    borderRadius: 18,
+    elevation: 3
+  },
+  tituloFormulario: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#134E4A',
+    marginBottom: 10
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#334155',
+    marginTop: 13,
+    marginBottom: 7
+  },
+  input: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 10,
+    padding: 13,
+    fontSize: 15
+  },
+  botaoCadastrar: {
+    backgroundColor: '#0F766E',
+    padding: 16,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 25
+  },
+  textoBotao: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 14
+  },
+  areaLista: {
+    marginHorizontal: 20
+  },
+  cabecalhoLista: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12
+  },
+  tituloLista: {
+    fontSize: 19,
+    fontWeight: 'bold',
+    color: '#1E293B'
+  },
+  contador: {
+    backgroundColor: '#CCFBF1',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  textoContador: {
+    color: '#0F766E',
+    fontWeight: 'bold'
+  },
+  vazio: {
+    backgroundColor: '#FFFFFF',
+    padding: 25,
+    borderRadius: 15,
+    alignItems: 'center'
+  },
+  iconeVazio: {
+    fontSize: 35,
+    marginBottom: 10
+  },
+  textoVazio: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#475569'
+  },
+  dicaVazio: {
+    color: '#94A3B8',
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 8
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    padding: 17,
+    borderRadius: 15,
+    marginBottom: 12,
+    elevation: 2
+  },
+  cardCabecalho: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  avatar: {
+    backgroundColor: '#CCFBF1',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12
+  },
+  avatarTexto: {
+    color: '#0F766E',
+    fontSize: 22,
+    fontWeight: 'bold'
+  },
+  dadosPrincipais: {
+    flex: 1
+  },
+  nomeEstudante: {
+    color: '#1E293B',
+    fontSize: 16,
+    fontWeight: 'bold'
+  },
+  matriculaEstudante: {
+    color: '#64748B',
+    fontSize: 13,
+    marginTop: 4
+  },
+  divisor: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
+    marginVertical: 13
+  },
+  dado: {
+    color: '#475569',
+    fontSize: 14,
+    marginBottom: 8
+  },
+  botaoRemover: {
+    backgroundColor: '#FEE2E2',
+    padding: 11,
+    borderRadius: 9,
+    alignItems: 'center',
+    marginTop: 8
+  },
+  textoRemover: {
+    color: '#B91C1C',
+    fontWeight: 'bold'
+  },
+  rodape: {
+    textAlign: 'center',
+    color: '#94A3B8',
+    fontSize: 12,
+    marginTop: 15
+  }
+});
