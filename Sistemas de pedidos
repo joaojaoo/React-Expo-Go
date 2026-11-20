@@ -1,0 +1,541 @@
+
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Alert
+} from 'react-native';
+
+export default function App() {
+  // Produtos disponíveis na lanchonete
+  const produtos = [
+    { id: 1, nome: 'Sanduíche', preco: 8.00, emoji: '🥪' },
+    { id: 2, nome: 'Suco natural', preco: 5.00, emoji: '🧃' },
+    { id: 3, nome: 'Coxinha', preco: 6.00, emoji: '🥟' },
+    { id: 4, nome: 'Refrigerante', preco: 4.50, emoji: '🥤' }
+  ];
+
+  // Quantidade selecionada de cada produto
+  const [quantidades, setQuantidades] = useState({
+    1: 1,
+    2: 1,
+    3: 1,
+    4: 1
+  });
+
+  // Lista de itens do pedido
+  const [carrinho, setCarrinho] = useState([]);
+
+  // Atualiza a quantidade selecionada
+  function alterarQuantidade(id, valor) {
+    setQuantidades((anterior) => ({
+      ...anterior,
+      [id]: Math.max(1, anterior[id] + valor)
+    }));
+  }
+
+  // Adiciona produto ao pedido
+  function adicionarProduto(produto) {
+    const quantidade = quantidades[produto.id];
+
+    setCarrinho((anterior) => {
+      const existe = anterior.some(
+        (item) => item.id === produto.id
+      );
+
+      if (existe) {
+        return anterior.map((item) =>
+          item.id === produto.id
+            ? {
+                ...item,
+                quantidade: item.quantidade + quantidade
+              }
+            : item
+        );
+      }
+
+      return [
+        ...anterior,
+        {
+          id: produto.id,
+          nome: produto.nome,
+          preco: produto.preco,
+          quantidade: quantidade
+        }
+      ];
+    });
+
+    Alert.alert(
+      'Produto adicionado!',
+      `${quantidade} unidade(s) de ${produto.nome} adicionada(s) ao pedido.`
+    );
+
+    setQuantidades((anterior) => ({
+      ...anterior,
+      [produto.id]: 1
+    }));
+  }
+
+  // Remove um produto do pedido
+  function removerProduto(id) {
+    setCarrinho((anterior) =>
+      anterior.filter((item) => item.id !== id)
+    );
+  }
+
+  // Calcula o subtotal de cada item
+  function calcularSubtotal(item) {
+    return item.preco * item.quantidade;
+  }
+
+  // Calcula o total do pedido
+  const total = carrinho.reduce(
+    (soma, item) => soma + calcularSubtotal(item),
+    0
+  );
+
+  // Soma todas as unidades do pedido
+  const totalItens = carrinho.reduce(
+    (soma, item) => soma + item.quantidade,
+    0
+  );
+
+  // Formata valores em reais
+  function formatarMoeda(valor) {
+    return valor.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    });
+  }
+
+  // Exibe o resumo final
+  function finalizarPedido() {
+    if (carrinho.length === 0) {
+      Alert.alert(
+        'Pedido vazio',
+        'Adicione pelo menos um produto antes de finalizar.'
+      );
+      return;
+    }
+
+    const resumo = carrinho
+      .map(
+        (item) =>
+          `${item.quantidade}x ${item.nome} - ${formatarMoeda(
+            calcularSubtotal(item)
+          )}`
+      )
+      .join('\n');
+
+    Alert.alert(
+      'Pedido finalizado!',
+      `${resumo}\n\nTotal: ${formatarMoeda(total)}`,
+      [
+        {
+          text: 'Novo pedido',
+          onPress: () => setCarrinho([])
+        },
+        {
+          text: 'Fechar'
+        }
+      ]
+    );
+  }
+
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.conteudo}
+    >
+      <View style={styles.header}>
+        <Text style={styles.titulo}>🍔 Lanchonete Universitária</Text>
+        <Text style={styles.subtitulo}>
+          Monte seu pedido de forma rápida e fácil!
+        </Text>
+      </View>
+
+      {/* Lista de produtos */}
+      <View style={styles.secao}>
+        <Text style={styles.tituloSecao}>
+          Nosso cardápio
+        </Text>
+
+        {produtos.map((produto) => (
+          <View key={produto.id} style={styles.cardProduto}>
+            <View style={styles.infoProduto}>
+              <Text style={styles.emoji}>
+                {produto.emoji}
+              </Text>
+
+              <View style={styles.dadosProduto}>
+                <Text style={styles.nomeProduto}>
+                  {produto.nome}
+                </Text>
+                <Text style={styles.precoProduto}>
+                  {formatarMoeda(produto.preco)}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.areaQuantidade}>
+              <TouchableOpacity
+                style={styles.botaoQuantidade}
+                onPress={() => alterarQuantidade(produto.id, -1)}
+              >
+                <Text style={styles.textoQuantidade}>−</Text>
+              </TouchableOpacity>
+
+              <Text style={styles.numeroQuantidade}>
+                {quantidades[produto.id]}
+              </Text>
+
+              <TouchableOpacity
+                style={styles.botaoQuantidade}
+                onPress={() => alterarQuantidade(produto.id, 1)}
+              >
+                <Text style={styles.textoQuantidade}>+</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.botaoAdicionar}
+              onPress={() => adicionarProduto(produto)}
+            >
+              <Text style={styles.textoBotaoAdicionar}>
+                Adicionar ao pedido
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+      </View>
+
+      {/* Carrinho */}
+      <View style={styles.secao}>
+        <View style={styles.cabecalhoCarrinho}>
+          <Text style={styles.tituloSecao}>
+            🛒 Seu pedido
+          </Text>
+
+          <Text style={styles.contador}>
+            {totalItens} item(ns)
+          </Text>
+        </View>
+
+        {carrinho.length === 0 ? (
+          <View style={styles.carrinhoVazio}>
+            <Text style={styles.iconeVazio}>🛍️</Text>
+            <Text style={styles.textoVazio}>
+              Seu pedido está vazio.
+            </Text>
+            <Text style={styles.dicaVazio}>
+              Escolha os produtos do cardápio acima.
+            </Text>
+          </View>
+        ) : (
+          carrinho.map((item) => (
+            <View key={item.id} style={styles.cardCarrinho}>
+              <View style={styles.infoCarrinho}>
+                <Text style={styles.nomeCarrinho}>
+                  {item.nome}
+                </Text>
+
+                <Text style={styles.detalheCarrinho}>
+                  {item.quantidade} x {formatarMoeda(item.preco)}
+                </Text>
+              </View>
+
+              <View style={styles.valoresCarrinho}>
+                <Text style={styles.subtotal}>
+                  {formatarMoeda(calcularSubtotal(item))}
+                </Text>
+
+                <TouchableOpacity
+                  onPress={() => removerProduto(item.id)}
+                >
+                  <Text style={styles.remover}>
+                    Remover
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))
+        )}
+
+        {/* Resumo do pedido */}
+        <View style={styles.resumo}>
+          <Text style={styles.tituloResumo}>
+            Resumo do pedido
+          </Text>
+
+          <View style={styles.linhaResumo}>
+            <Text style={styles.textoResumo}>
+              Quantidade de itens:
+            </Text>
+            <Text style={styles.valorResumo}>
+              {totalItens}
+            </Text>
+          </View>
+
+          <View style={styles.separador} />
+
+          <View style={styles.linhaTotal}>
+            <Text style={styles.textoTotal}>
+              TOTAL:
+            </Text>
+            <Text style={styles.valorTotal}>
+              {formatarMoeda(total)}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.botaoFinalizar}
+            onPress={finalizarPedido}
+          >
+            <Text style={styles.textoBotaoFinalizar}>
+              FINALIZAR PEDIDO
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <Text style={styles.rodape}>
+        Sistema de pedidos – Projeto React Native
+      </Text>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F1F5F9'
+  },
+  conteudo: {
+    paddingBottom: 30
+  },
+  header: {
+    backgroundColor: '#EA580C',
+    padding: 30,
+    paddingTop: 55,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+    alignItems: 'center'
+  },
+  titulo: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
+  subtitulo: {
+    color: '#FFEDD5',
+    fontSize: 14,
+    marginTop: 10,
+    textAlign: 'center'
+  },
+  secao: {
+    marginHorizontal: 18,
+    marginTop: 22
+  },
+  tituloSecao: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    marginBottom: 12
+  },
+  cardProduto: {
+    backgroundColor: '#FFFFFF',
+    padding: 15,
+    borderRadius: 15,
+    marginBottom: 12,
+    elevation: 2
+  },
+  infoProduto: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  emoji: {
+    fontSize: 35,
+    marginRight: 13
+  },
+  dadosProduto: {
+    flex: 1
+  },
+  nomeProduto: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1E293B'
+  },
+  precoProduto: {
+    color: '#EA580C',
+    fontWeight: 'bold',
+    marginTop: 5
+  },
+  areaQuantidade: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 15
+  },
+  botaoQuantidade: {
+    backgroundColor: '#FFEDD5',
+    width: 38,
+    height: 35,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  textoQuantidade: {
+    color: '#C2410C',
+    fontSize: 22,
+    fontWeight: 'bold'
+  },
+  numeroQuantidade: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    marginHorizontal: 22
+  },
+  botaoAdicionar: {
+    backgroundColor: '#EA580C',
+    padding: 12,
+    borderRadius: 9,
+    alignItems: 'center',
+    marginTop: 13
+  },
+  textoBotaoAdicionar: {
+    color: '#FFFFFF',
+    fontWeight: 'bold'
+  },
+  cabecalhoCarrinho: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  contador: {
+    color: '#EA580C',
+    fontWeight: 'bold',
+    marginBottom: 12
+  },
+  carrinhoVazio: {
+    backgroundColor: '#FFFFFF',
+    padding: 25,
+    borderRadius: 15,
+    alignItems: 'center'
+  },
+  iconeVazio: {
+    fontSize: 35,
+    marginBottom: 8
+  },
+  textoVazio: {
+    color: '#475569',
+    fontSize: 16,
+    fontWeight: 'bold'
+  },
+  dicaVazio: {
+    color: '#94A3B8',
+    fontSize: 13,
+    marginTop: 7,
+    textAlign: 'center'
+  },
+  cardCarrinho: {
+    backgroundColor: '#FFFFFF',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 9,
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  infoCarrinho: {
+    flex: 1
+  },
+  nomeCarrinho: {
+    color: '#1E293B',
+    fontSize: 15,
+    fontWeight: 'bold'
+  },
+  detalheCarrinho: {
+    color: '#64748B',
+    fontSize: 13,
+    marginTop: 5
+  },
+  valoresCarrinho: {
+    alignItems: 'flex-end'
+  },
+  subtotal: {
+    color: '#EA580C',
+    fontSize: 15,
+    fontWeight: 'bold'
+  },
+  remover: {
+    color: '#DC2626',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginTop: 7
+  },
+  resumo: {
+    backgroundColor: '#FFFFFF',
+    padding: 18,
+    borderRadius: 15,
+    marginTop: 12,
+    elevation: 2
+  },
+  tituloResumo: {
+    color: '#1E293B',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15
+  },
+  linhaResumo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  textoResumo: {
+    color: '#64748B'
+  },
+  valorResumo: {
+    color: '#1E293B',
+    fontWeight: 'bold'
+  },
+  separador: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
+    marginVertical: 15
+  },
+  linhaTotal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  textoTotal: {
+    color: '#1E293B',
+    fontSize: 17,
+    fontWeight: 'bold'
+  },
+  valorTotal: {
+    color: '#EA580C',
+    fontSize: 23,
+    fontWeight: 'bold'
+  },
+  botaoFinalizar: {
+    backgroundColor: '#16A34A',
+    padding: 16,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20
+  },
+  textoBotaoFinalizar: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 15
+  },
+  rodape: {
+    textAlign: 'center',
+    color: '#94A3B8',
+    fontSize: 12,
+    marginTop: 25
+  }
+});
