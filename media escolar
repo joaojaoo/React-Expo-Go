@@ -1,0 +1,336 @@
+
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert
+} from 'react-native';
+
+export default function App() {
+  const [nome, setNome] = useState('');
+  const [nota1, setNota1] = useState('');
+  const [nota2, setNota2] = useState('');
+  const [nota3, setNota3] = useState('');
+  const [resultado, setResultado] = useState(null);
+
+  function calcularMedia() {
+    // Verificar se os campos estão preenchidos
+    if (
+      nome.trim() === '' ||
+      nota1.trim() === '' ||
+      nota2.trim() === '' ||
+      nota3.trim() === ''
+    ) {
+      Alert.alert(
+        'Atenção',
+        'Preencha todos os campos antes de continuar.'
+      );
+      return;
+    }
+
+    // Converter as notas para números
+    const n1 = Number(nota1.replace(',', '.'));
+    const n2 = Number(nota2.replace(',', '.'));
+    const n3 = Number(nota3.replace(',', '.'));
+
+    // Validar as notas
+    const notas = [n1, n2, n3];
+
+    if (
+      !notas.every(
+        nota => Number.isFinite(nota) &&
+        nota >= 0 && nota <= 10
+      )
+    ) {
+      Alert.alert(
+        'Notas inválidas',
+        'As notas devem estar entre 0 e 10.'
+      );
+      return;
+    }
+
+    // Calcular média
+    const media = (n1 + n2 + n3) / 3;
+
+    // Verificar situação
+    const situacao = media >= 7 ? 'Aprovado' : 'Reprovado';
+
+    setResultado({
+      nome: nome.trim(),
+      media: media.toFixed(2),
+      situacao: situacao
+    });
+  }
+
+  function limpar() {
+    setNome('');
+    setNota1('');
+    setNota2('');
+    setNota3('');
+    setResultado(null);
+  }
+
+  return (
+    <View style={styles.container}>
+
+      <Text style={styles.icone}>📚</Text>
+
+      <Text style={styles.titulo}>
+        Média Escolar
+      </Text>
+
+      <Text style={styles.subtitulo}>
+        Consulte seu desempenho acadêmico
+      </Text>
+
+      <View style={styles.formulario}>
+
+        <Text style={styles.label}>
+          Nome do estudante
+        </Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Digite seu nome"
+          value={nome}
+          onChangeText={(texto) => {
+            setNome(texto);
+            setResultado(null);
+          }}
+        />
+
+        <Text style={styles.label}>
+          Primeira nota
+        </Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Exemplo: 8,0"
+          keyboardType="decimal-pad"
+          value={nota1}
+          onChangeText={(texto) => {
+            setNota1(texto);
+            setResultado(null);
+          }}
+        />
+
+        <Text style={styles.label}>
+          Segunda nota
+        </Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Exemplo: 7,0"
+          keyboardType="decimal-pad"
+          value={nota2}
+          onChangeText={(texto) => {
+            setNota2(texto);
+            setResultado(null);
+          }}
+        />
+
+        <Text style={styles.label}>
+          Terceira nota
+        </Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Exemplo: 9,0"
+          keyboardType="decimal-pad"
+          value={nota3}
+          onChangeText={(texto) => {
+            setNota3(texto);
+            setResultado(null);
+          }}
+        />
+
+        <TouchableOpacity
+          style={styles.botao}
+          onPress={calcularMedia}
+        >
+          <Text style={styles.textoBotao}>
+            Calcular média
+          </Text>
+        </TouchableOpacity>
+
+      </View>
+
+      {resultado !== null && (
+        <View style={styles.resultado}>
+
+          <Text style={styles.resultadoTitulo}>
+            Resultado do estudante
+          </Text>
+
+          <Text style={styles.nomeResultado}>
+            {resultado.nome}
+          </Text>
+
+          <Text style={styles.media}>
+            Média: {resultado.media.replace('.', ',')}
+          </Text>
+
+          <Text
+            style={[
+              styles.situacao,
+              resultado.situacao === 'Aprovado'
+                ? styles.aprovado
+                : styles.reprovado
+            ]}
+          >
+            {resultado.situacao === 'Aprovado'
+              ? '✓ Aprovado'
+              : '✕ Reprovado'}
+          </Text>
+
+        </View>
+      )}
+
+      <TouchableOpacity
+        style={styles.botaoLimpar}
+        onPress={limpar}
+      >
+        <Text style={styles.textoLimpar}>
+          Limpar campos
+        </Text>
+      </TouchableOpacity>
+
+      <Text style={styles.rodape}>
+        Média mínima para aprovação: 7,0
+      </Text>
+
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+
+  container: {
+    flex: 1,
+    backgroundColor: '#EEF3FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 22
+  },
+
+  icone: {
+    fontSize: 50,
+    marginBottom: 5
+  },
+
+  titulo: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#344D91'
+  },
+
+  subtitulo: {
+    fontSize: 14,
+    color: '#697894',
+    marginTop: 6,
+    marginBottom: 20
+  },
+
+  formulario: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderRadius: 16,
+    elevation: 3
+  },
+
+  label: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#344D91',
+    marginBottom: 7
+  },
+
+  input: {
+    backgroundColor: '#F5F7FC',
+    borderWidth: 1,
+    borderColor: '#D5DDF0',
+    borderRadius: 10,
+    padding: 13,
+    fontSize: 16,
+    marginBottom: 14
+  },
+
+  botao: {
+    backgroundColor: '#405DB0',
+    padding: 16,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 5
+  },
+
+  textoBotao: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: 'bold'
+  },
+
+  resultado: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderRadius: 15,
+    alignItems: 'center',
+    marginTop: 20,
+    elevation: 3
+  },
+
+  resultadoTitulo: {
+    color: '#697894',
+    fontSize: 14
+  },
+
+  nomeResultado: {
+    color: '#344D91',
+    fontSize: 19,
+    fontWeight: 'bold',
+    marginTop: 8
+  },
+
+  media: {
+    fontSize: 25,
+    fontWeight: 'bold',
+    color: '#405DB0',
+    marginTop: 10
+  },
+
+  situacao: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 10
+  },
+
+  aprovado: {
+    color: '#159653'
+  },
+
+  reprovado: {
+    color: '#D94343'
+  },
+
+  botaoLimpar: {
+    padding: 13,
+    marginTop: 8
+  },
+
+  textoLimpar: {
+    color: '#405DB0',
+    fontWeight: 'bold',
+    fontSize: 15
+  },
+
+  rodape: {
+    color: '#8995AD',
+    fontSize: 12,
+    marginTop: 10
+  }
+
+});
