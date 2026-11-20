@@ -1,0 +1,282 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Alert
+} from 'react-native';
+
+export default function App() {
+  const [candidatos, setCandidatos] = useState([
+    { id: 1, nome: 'Ana Souza', votos: 0, emoji: '👩🏻' },
+    { id: 2, nome: 'Bruno Lima', votos: 0, emoji: '👨🏻' },
+    { id: 3, nome: 'Carla Mendes', votos: 0, emoji: '👩🏽' }
+  ]);
+
+  // Calcula o total de votos
+  const totalVotos = candidatos.reduce(
+    (total, candidato) => total + candidato.votos,
+    0
+  );
+
+  // Registra um voto para o candidato escolhido
+  function votar(id) {
+    setCandidatos((anterior) =>
+      anterior.map((candidato) =>
+        candidato.id === id
+          ? { ...candidato, votos: candidato.votos + 1 }
+          : candidato
+      )
+    );
+  }
+
+  // Identifica o candidato ou candidatos mais votados
+  const maiorNumero = Math.max(
+    ...candidatos.map((candidato) => candidato.votos)
+  );
+
+  const lideres = candidatos.filter(
+    (candidato) => candidato.votos === maiorNumero
+  );
+
+  let resultado = 'Aguardando votos...';
+
+  if (totalVotos > 0) {
+    if (lideres.length === 1) {
+      resultado = `Líder: ${lideres[0].nome}`;
+    } else {
+      resultado = `Empate na liderança: ${
+        lideres.map((c) => c.nome).join(', ')
+      }`;
+    }
+  }
+
+  // Reinicia a votação
+  function zerarVotacao() {
+    Alert.alert(
+      'Zerar votação',
+      'Tem certeza que deseja apagar todos os votos?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sim, zerar',
+          style: 'destructive',
+          onPress: () => {
+            setCandidatos((anterior) =>
+              anterior.map((candidato) => ({
+                ...candidato,
+                votos: 0
+              }))
+            );
+          }
+        }
+      ]
+    );
+  }
+
+  return (
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.titulo}>🗳️ Sistema de Votação</Text>
+        <Text style={styles.subtitulo}>
+          Escolha seu candidato e registre seu voto!
+        </Text>
+      </View>
+
+      <View style={styles.totalCard}>
+        <Text style={styles.totalLabel}>TOTAL DE VOTOS</Text>
+        <Text style={styles.totalNumero}>{totalVotos}</Text>
+      </View>
+
+      <Text style={styles.secaoTitulo}>Candidatos</Text>
+
+      {candidatos.map((candidato) => (
+        <View key={candidato.id} style={styles.card}>
+          <View style={styles.infoCandidato}>
+            <Text style={styles.emoji}>{candidato.emoji}</Text>
+
+            <View style={styles.dados}>
+              <Text style={styles.nome}>
+                {candidato.nome}
+              </Text>
+              <Text style={styles.votos}>
+                {candidato.votos} voto(s)
+              </Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.botaoVotar}
+            onPress={() => votar(candidato.id)}
+          >
+            <Text style={styles.textoBotao}>VOTAR</Text>
+          </TouchableOpacity>
+        </View>
+      ))}
+
+      <View style={styles.resultadoCard}>
+        <Text style={styles.resultadoTitulo}>
+          🏆 Resultado da votação
+        </Text>
+
+        <Text style={styles.resultadoTexto}>
+          {resultado}
+        </Text>
+
+        {totalVotos > 0 && (
+          <Text style={styles.resultadoSubtexto}>
+            {maiorNumero} voto(s) na liderança
+          </Text>
+        )}
+      </View>
+
+      <TouchableOpacity
+        style={styles.botaoZerar}
+        onPress={zerarVotacao}
+      >
+        <Text style={styles.textoBotaoZerar}>
+          Zerar votação
+        </Text>
+      </TouchableOpacity>
+
+      <Text style={styles.rodape}>
+        Sistema acadêmico de votação – Candidatos fictícios
+      </Text>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
+  },
+  header: {
+    backgroundColor: '#1E3A8A',
+    padding: 30,
+    paddingTop: 55,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+    alignItems: 'center',
+  },
+  titulo: {
+    color: '#FFFFFF',
+    fontSize: 25,
+    fontWeight: 'bold',
+  },
+  subtitulo: {
+    color: '#DBEAFE',
+    fontSize: 14,
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  totalCard: {
+    backgroundColor: '#FFFFFF',
+    margin: 20,
+    padding: 22,
+    borderRadius: 18,
+    alignItems: 'center',
+    elevation: 3,
+  },
+  totalLabel: {
+    color: '#64748B',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  totalNumero: {
+    color: '#1E3A8A',
+    fontSize: 42,
+    fontWeight: 'bold',
+    marginTop: 5,
+  },
+  secaoTitulo: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    marginHorizontal: 20,
+    marginBottom: 10,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 20,
+    marginVertical: 8,
+    padding: 16,
+    borderRadius: 15,
+    elevation: 2,
+  },
+  infoCandidato: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  emoji: {
+    fontSize: 38,
+    marginRight: 15,
+  },
+  dados: {
+    flex: 1,
+  },
+  nome: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    color: '#1E293B',
+  },
+  votos: {
+    color: '#64748B',
+    marginTop: 5,
+  },
+  botaoVotar: {
+    backgroundColor: '#2563EB',
+    padding: 13,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 15,
+  },
+  textoBotao: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  resultadoCard: {
+    backgroundColor: '#DBEAFE',
+    margin: 20,
+    padding: 20,
+    borderRadius: 15,
+    alignItems: 'center',
+  },
+  resultadoTitulo: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1E3A8A',
+  },
+  resultadoTexto: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    color: '#1D4ED8',
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  resultadoSubtexto: {
+    color: '#475569',
+    marginTop: 8,
+  },
+  botaoZerar: {
+    backgroundColor: '#DC2626',
+    marginHorizontal: 20,
+    padding: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  textoBotaoZerar: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  rodape: {
+    textAlign: 'center',
+    color: '#94A3B8',
+    margin: 25,
+    fontSize: 12,
+  },
+});
